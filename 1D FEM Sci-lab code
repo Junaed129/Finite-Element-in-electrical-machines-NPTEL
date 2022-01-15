@@ -1,0 +1,72 @@
+//Problem defination (grad^2)*phi+phi+x=0 with phi=0 at x=0 & x=1
+clc;
+clear;
+n = 11; // No of nodes
+A = zeros(n,n);//Global co-efficint matrix corresponding to Phi" term(del^2)
+D = zeros(n,n);//Global co-efficint matrix corresponding to Phi term
+B= zeros(n,1);//Global co efficient matrix corresponding to source/boundary conditions)
+// For simplicity Phi(unknown nodal potentials) variable is denoted with U
+// Discretizing into n-1 segments or elements
+// For example: if n=11, no of segments: (11-1)=10
+x=0:1/(n-1):1;
+// Formation of connectivity matrix(t)) which represents how nodes are connected with other nodes
+for i =1:n-1
+    t(1,i)=i;//Starting node number
+    //for example: element 1 is between nodes 1 and 2
+    //element 2 between nodes 2 and 3 and so on
+    t(2,i)=i+1;//ending node number
+end
+//Formation of local co-efficient matrix
+for element=1:n-1
+    //Co-ordinates of the two nodes of each element
+    xn(1)=x(t(1,element));
+    xn(2)=x(t(2,element));
+    //for element 1:Xn(1)=0, Xn(2)=1/10,
+    //for element 2:Xn(1)=2/10, Xn(2)=3/10 and so on
+    L = abs(xn(2)-xn(1));//length of each element
+    //formation of element level matrices
+    for i=1:2
+        for j=1:2
+            if(i==j) then//Diagonal element of 'a' matrix
+                a(element,i,j)=1/L;
+            else
+                a(element,i,j)=-1/L;
+            end
+        end
+    end
+    d(element,:,:)=(L/6)*[2 1;1 2];
+    // Formation of element level matrix corresponding to phi term
+    // Formation of element level matrix corresponding to source condition
+    // for node 1 of each element
+    b(element,1)=(1/L)*((xn(2)*((xn(2)^2)-(xn(1)^2))/2)-(((xn(2)^3)-(xn(1)^3))/3))/L;
+    // for node 2 of each element
+    b(element,2)= (1/L)*(-(xn(2)*((xn(2)^2)-(xn(1)^2))/2)+(((xn(2)^3)-(xn(1)^3))/3))/L;
+   end
+   // Formation of global level matrices using the connectivity matrix
+for element = 1:n-1
+       nodes=t(1:2,element);
+       for i =1:2
+           for j=1:2 //1,2 are local node number of 
+               A(nodes(i),nodes(j))=A(nodes(i),nodes(j)) + a(element,i,j);
+               D(nodes(i),nodes(j))=D(nodes(i),nodes(j)) + d(element,i,j);
+           end
+           B(nodes(i))=+B(nodes(i))+b(element,i);
+   end
+end
+K = A-D; //AU-DU = B, (A-D)U=B, K=A-D
+// Imposing boundary conditions
+K(1,:)=zeros(1,n);//for the 1st node
+K(1,1)=1;
+B(1)=0;
+K(n,:)=zeros(1,n);// for the end node
+K(n,n)=1;
+B(n)=0;
+U=K\B;
+plot(x',U,'r');
+U1=(sin(x)/sin(1))-x;
+plot(x',U1,'b')
+U2=(5/18)*(x-(x)^2)
+plot(x',U2,'g')
+legend('1D FEM(10 elements','Exact Solution','Approximate Solution')
+
+   
